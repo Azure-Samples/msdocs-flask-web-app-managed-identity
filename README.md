@@ -1,57 +1,39 @@
-# Project Name
+# Deploy a Python (Flask) app to Azure with Managed Identity 
 
-(short, 1-3 sentenced, description of the project)
+This Python app is a simple restaurant review application using the Flask framework. The app uses Azure App Service, Azure Database for PostgreSQL relational database service, and Azure Storage. When deployed, Azure managed identity allows the web app hosted in App Service to connect to the database and storage resources without the need to specify sensitive connection info in code or environment variables.
 
-## Features
+The Flask app is hosted in a fully managed Azure App Service. This app can be run locally and then deployed to Azure. For more information on how to use this web app, see the  [*TBD - coming soon*](TBD).
 
-This project framework provides the following features:
+If you need an Azure account, you can [create on for free](https://azure.microsoft.com/free/).
 
-* Feature 1
-* Feature 2
-* ...
+A Django sample application with similar functionality is at https://github.com/Azure-Samples/msdocs-django-web-app-managed-identity.
 
-## Getting Started
+## Requirements
 
-### Prerequisites
+The [requirements.txt](./requirements.txt) has the following packages:
 
-(ideally very short, if any)
+| Package | Description |
+| ------- | ----------- |
+| [Flask](https://pypi.org/project/Flask/) | Web application framework. |
+| [SQLAlchemy](https://pypi.org/project/SQLAlchemy/) | Provides a database abstraction layer to communicate with PostgreSQL. |
+| [Flask-SQLAlchemy](https://pypi.org/project/Flask-SQLAlchemy/) | Adds SQLAlchemy support to Flask application by simplifying using SQLAlchemy. Requires SQLAlchemy. |
+| [Flask-Migrate](https://pypi.org/project/Flask-Migrate/) | SQLAlchemy database migrations for Flask applications using Alembic. Allows functionality parity with Django version of this sample app.|
+| [pyscopg2](https://pypi.org/project/psycopg2/) | PostgreSQL database adapter for Python. |
+| [python-dotenv](https://pypi.org/project/python-dotenv/) | Read key-value pairs from .env file and set them as environment variables. In this sample app, environment variables describe how to connect to the database and storage resources. Because managed identity is used no sensitive information is included in environment variables. <br><br> Flask's [dotenv support](https://flask.palletsprojects.com/en/2.1.x/cli/#environment-variables-from-dotenv) sets environment variables automatically from an `.env` file. |
+| [flask_wtf](https://pypi.org/project/Flask-WTF/) | Form rendering, validation, and CSRF protection for Flask with WTForms. Uses CSRFProtect extension. |
+| [azure-blob-storage](https://pypi.org/project/azure-storage/) | Microsoft Azure Storage SDK for Python |
+| [azure-identity](https://pypi.org/project/azure-identity/) | Microsoft Azure Identity Library for Python |
 
-- OS
-- Library version
-- ...
+## DefaultAzureCredential
 
-### Installation
+The [DefaultAzureCredential](https://docs.microsoft.com/python/api/azure-identity/azure.identity.defaultazurecredential) is used in the [views.py](./restaurant_review/views.py) file. For example:
 
-(ideally very short)
+```python
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
 
-- npm install [package name]
-- mvn install
-- ...
-
-### Quickstart
-(Add steps to get up and running quickly)
-
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
-
-
-## Demo
-
-A demo app is included to show how to use the project.
-
-To run the demo, follow these steps:
-
-(Add steps to start up the demo)
-
-1.
-2.
-3.
-
-## Resources
-
-(Any additional resources or related projects)
-
-- Link to supporting information
-- Link to similar sample
-- ...
+azure_credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True)
+blob_service_client = BlobServiceClient(
+    account_url=account_url,
+    credential=azure_credential)
+```
