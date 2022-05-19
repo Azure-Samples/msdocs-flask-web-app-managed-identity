@@ -5,6 +5,7 @@ from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
+from azureproject.get_conn import get_conn
 import os
 import uuid
 
@@ -23,10 +24,11 @@ else:
    print("Loading config.production.")
    app.config.from_object('azureproject.production')
 
-app.config.update(
-    SQLALCHEMY_DATABASE_URI=app.config.get('DATABASE_URI'),
-    SQLALCHEMY_TRACK_MODIFICATIONS=False,
-)
+with app.app_context():
+    app.config.update(
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        SQLALCHEMY_DATABASE_URI=get_conn(),
+    )
 
 # Initialize the database connection
 db = SQLAlchemy(app)
