@@ -10,11 +10,9 @@ def get_conn():
         print("Get password token.")
         token = azure_credential.get_token("https://ossrdbms-aad.database.windows.net")
         conn = str(current_app.config.get('DATABASE_URI')).replace('PASSWORDORTOKEN', token.token)
-        print(conn)
         return conn
     else:
         # Locally, read password from environment variable.
         print("Read password env variable.")
         conn = str(current_app.config.get('DATABASE_URI')).replace('PASSWORDORTOKEN', os.environ['DBPASS'])
-        print(conn)
         return conn
