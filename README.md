@@ -1,8 +1,8 @@
 # Deploy a Python (Flask) app to Azure with Managed Identity 
 
-This Python app is a simple restaurant review application using the Flask framework. The app uses Azure App Service, Azure Database for PostgreSQL relational database service, and Azure Storage. When deployed, Azure managed identity allows the web app hosted in App Service to connect to the database and storage resources without the need to specify sensitive connection info in code or environment variables.
+This Python app is a simple restaurant review application using the [Flask](https://flask.palletsprojects.com/en/2.1.x/) framework. The app uses Azure App Service, Azure Database for PostgreSQL relational database service, and Azure Storage. When deployed, Azure managed identity allows the web app hosted in App Service to connect to the database and storage resources without the need to specify sensitive connection info in code or environment variables.
 
-The Flask app is hosted in a fully managed Azure App Service. This app can be run locally and then deployed to Azure. For more information on how to use this web app, see the  [*TBD - coming soon*](TBD).
+This sample app can be run locally and then deployed to Azure, hosted in a fully managed Azure App Service. For more information on how to use this web app, see the  [*TBD - coming soon*](TBD).
 
 If you need an Azure account, you can [create on for free](https://azure.microsoft.com/free/).
 
@@ -26,7 +26,7 @@ The [requirements.txt](./requirements.txt) has the following packages:
 
 ## DefaultAzureCredential
 
-The [DefaultAzureCredential](https://docs.microsoft.com/python/api/azure-identity/azure.identity.defaultazurecredential) is used in the [views.py](./restaurant_review/views.py) file. For example:
+The [DefaultAzureCredential](https://docs.microsoft.com/python/api/azure-identity/azure.identity.defaultazurecredential) is used in the [app.py](./app.py) file. For example:
 
 ```python
 from azure.identity import DefaultAzureCredential
