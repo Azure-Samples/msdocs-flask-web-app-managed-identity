@@ -37,3 +37,11 @@ blob_service_client = BlobServiceClient(
     account_url=account_url,
     credential=azure_credential)
 ```
+
+The DefaultAzureCredential is also used to get a token for PostgresSQL in the get_token.py file when running in Azure.
+
+```python
+azure_credential = DefaultAzureCredential()
+token = azure_credential.get_token("https://ossrdbms-aad.database.windows.net")
+conn = str(current_app.config.get('DATABASE_URI')).replace('PASSWORDORTOKEN', token.token)
+```
