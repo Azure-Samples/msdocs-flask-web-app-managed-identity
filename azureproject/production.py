@@ -8,7 +8,7 @@ ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']] if 'WEBSITE_HOSTNAME' in os.env
 CSRF_TRUSTED_ORIGINS = ['https://'+ os.environ['WEBSITE_HOSTNAME']] if 'WEBSITE_HOSTNAME' in os.environ else []
 
 # Configure Postgres database; the full username for PostgreSQL flexible server is
-# username (without @sever-name).
+# username (without @server-name).
 DATABASE_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
     dbuser=os.environ['DBUSER'],
     dbpass='PASSWORDORTOKEN',
