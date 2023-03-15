@@ -1,6 +1,7 @@
 import os
 import uuid
 from datetime import datetime
+from urllib.parse import urlparse
 
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
@@ -14,6 +15,8 @@ from requests import RequestException
 
 app = Flask(__name__, static_folder='static')
 csrf = CSRFProtect(app)
+
+STORAGE_CONTAINER_NAME = urlparse(os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT']).netloc.split('.')[0]
 
 # WEBSITE_HOSTNAME exists only in production environment
 if not 'WEBSITE_HOSTNAME' in os.environ:
@@ -53,8 +56,8 @@ def details(id):
 def details(id, message):
     restaurant = Restaurant.query.where(Restaurant.id == id).first()
     reviews = Review.query.where(Review.restaurant==id)
-    account_url = get_account_url()
-    image_path = account_url + "/" + os.environ['STORAGE_CONTAINER_NAME']
+    account_url = os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT']
+    image_path = account_url + "/" + STORAGE_CONTAINER_NAME
     return render_template('details.html', restaurant=restaurant, reviews=reviews, message=message, image_path=image_path)
 
 @app.route('/create', methods=['GET'])
@@ -114,7 +117,7 @@ def add_review(id):
                 return details(id, 'Image too big, try again.')
 
             # Get account_url based on environment
-            account_url = get_account_url()
+            account_url = os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT']
             print("account_url = " + account_url)
 
             # Create client
@@ -127,7 +130,7 @@ def add_review(id):
             image_name = str(uuid.uuid4()) + ".png"
             
             # Create blob client
-            blob_client = blob_service_client.get_blob_client(container=os.environ['STORAGE_CONTAINER_NAME'], blob=image_name)
+            blob_client = blob_service_client.get_blob_client(container=STORAGE_CONTAINER_NAME, blob=image_name)
             print("\nUploading to Azure Storage as blob:\n\t" + image_name)
 
             # Upload file
@@ -169,14 +172,6 @@ def utility_processor():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-def get_account_url():
-    # Create LOCAL_USE_AZURE_STORAGE environment variable to use Azure Storage locally. 
-    if 'WEBSITE_HOSTNAME' in os.environ or ("LOCAL_USE_AZURE_STORAGE" in os.environ):
-        print("Using Azure Storage.")
-        return "https://%s.blob.core.windows.net" % os.environ['STORAGE_ACCOUNT_NAME']
-    else:
-        return os.environ['STORAGE_ACCOUNT_NAME']
 
 if __name__ == '__main__':
    app.run()
