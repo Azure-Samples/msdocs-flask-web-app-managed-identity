@@ -16,7 +16,7 @@ from requests import RequestException
 app = Flask(__name__, static_folder='static')
 csrf = CSRFProtect(app)
 
-STORAGE_CONTAINER_NAME = urlparse(os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT']).netloc.split('.')[0]
+STORAGE_CONTAINER_NAME = 'photos'
 
 # WEBSITE_HOSTNAME exists only in production environment
 if not 'WEBSITE_HOSTNAME' in os.environ:
