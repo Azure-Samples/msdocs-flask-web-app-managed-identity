@@ -57,7 +57,7 @@ def details(id, message):
     restaurant = Restaurant.query.where(Restaurant.id == id).first()
     reviews = Review.query.where(Review.restaurant==id)
     account_url = os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT']
-    image_path = account_url + "/" + STORAGE_CONTAINER_NAME
+    image_path = account_url + STORAGE_CONTAINER_NAME
     return render_template('details.html', restaurant=restaurant, reviews=reviews, message=message, image_path=image_path)
 
 @app.route('/create', methods=['GET'])
