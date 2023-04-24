@@ -173,7 +173,7 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 def get_account_url():
-    if not 'AZURE_STORAGEBLOB_CONNECTIONSTRING' in os.environ:
+    if not 'AZURE_STORAGEBLOB_RESOURCEENDPOINT' in os.environ:
         # Create LOCAL_USE_AZURE_STORAGE environment variable to use Azure Storage locally. 
         if 'WEBSITE_HOSTNAME' in os.environ or ("LOCAL_USE_AZURE_STORAGE" in os.environ):
             print("Using Azure Storage.")
