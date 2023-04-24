@@ -17,11 +17,6 @@ app = Flask(__name__, static_folder='static')
 csrf = CSRFProtect(app)
 
 STORAGE_CONTAINER_NAME = 'photos'
-if not 'AZURE_STORAGEBLOB_CONNECTIONSTRING' in os.environ:
-    ACCOUNT_URL = os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT'].rstrip('/')
-else:
-    ACCOUNT_URL = get_account_url()
-
 
 # WEBSITE_HOSTNAME exists only in production environment
 if not 'WEBSITE_HOSTNAME' in os.environ:
@@ -62,7 +57,7 @@ def details(id):
 def details(id, message):
     restaurant = Restaurant.query.where(Restaurant.id == id).first()
     reviews = Review.query.where(Review.restaurant==id)
-    image_path = ACCOUNT_URL + "/" +  STORAGE_CONTAINER_NAME
+    image_path = get_account_url() + "/" +  STORAGE_CONTAINER_NAME
     return render_template('details.html', restaurant=restaurant, reviews=reviews, message=message, image_path=image_path)
 
 @app.route('/create', methods=['GET'])
@@ -122,12 +117,12 @@ def add_review(id):
                 return details(id, 'Image too big, try again.')
 
             # Get account_url based on environment
-            print("account_url = " + ACCOUNT_URL)
+            print("account_url = " + get_account_url())
 
             # Create client
             azure_credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True)
             blob_service_client = BlobServiceClient(
-                account_url=ACCOUNT_URL,
+                account_url = get_account_url(),
                 credential=azure_credential)
 
             # Get file name to use in database
@@ -178,12 +173,15 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 def get_account_url():
-    # Create LOCAL_USE_AZURE_STORAGE environment variable to use Azure Storage locally. 
-    if 'WEBSITE_HOSTNAME' in os.environ or ("LOCAL_USE_AZURE_STORAGE" in os.environ):
-        print("Using Azure Storage.")
-        return "https://%s.blob.core.windows.net" % os.environ['STORAGE_ACCOUNT_NAME']
+    if not 'AZURE_STORAGEBLOB_CONNECTIONSTRING' in os.environ:
+        # Create LOCAL_USE_AZURE_STORAGE environment variable to use Azure Storage locally. 
+        if 'WEBSITE_HOSTNAME' in os.environ or ("LOCAL_USE_AZURE_STORAGE" in os.environ):
+            print("Using Azure Storage.")
+            return "https://%s.blob.core.windows.net" % os.environ['STORAGE_ACCOUNT_NAME']
+        else:
+            return os.environ['STORAGE_ACCOUNT_NAME']
     else:
-        return os.environ['STORAGE_ACCOUNT_NAME']
+        ACCOUNT_URL = os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT'].rstrip('/')
 
 
 if __name__ == '__main__':
