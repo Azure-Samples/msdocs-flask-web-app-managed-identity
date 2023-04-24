@@ -181,7 +181,7 @@ def get_account_url():
         else:
             return os.environ['STORAGE_ACCOUNT_NAME']
     else:
-        ACCOUNT_URL = os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT'].rstrip('/')
+        return os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT'].rstrip('/')
 
 
 if __name__ == '__main__':
