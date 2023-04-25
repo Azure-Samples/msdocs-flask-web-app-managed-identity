@@ -1,7 +1,7 @@
 #!/bin/bash -v 
 pip install -r requirements.txt
 
-SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex())')
+export SECRET_KEY=$(python -c 'import secrets; print(secrets.token_hex())')
 
 flask db upgrade
 
