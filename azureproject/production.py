@@ -1,7 +1,8 @@
 import os
+import secrets
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = os.environ['SECRET_KEY'] if 'SECRET_KEY' in os.environ else secrets.token_hex()
 
 DEBUG = False
 ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']] if 'WEBSITE_HOSTNAME' in os.environ else []
