@@ -1,18 +1,22 @@
+import os
+import uuid
+from datetime import datetime
+from urllib.parse import urlparse
+
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
-from datetime import datetime
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 from azureproject.get_conn import get_conn
-import os
-import uuid
 
 from requests import RequestException
 
 app = Flask(__name__, static_folder='static')
 csrf = CSRFProtect(app)
+
+STORAGE_CONTAINER_NAME = 'photos'
 
 # WEBSITE_HOSTNAME exists only in production environment
 if not 'WEBSITE_HOSTNAME' in os.environ:
@@ -30,21 +34,18 @@ with app.app_context():
         SQLALCHEMY_DATABASE_URI=get_conn(),
     )
 
+
 # Initialize the database connection
 db = SQLAlchemy(app)
 
 # Enable Flask-Migrate commands "flask db init/migrate/upgrade" to work
 migrate = Migrate(app, db)
 
-# Create databases, if databases exists doesn't issue create
-# For schema changes, run "flask db migrate"
+# The import must be done after db initialization due to circular import issue
 from models import Restaurant, Review
-db.create_all()
-db.session.commit()
 
 @app.route('/', methods=['GET'])
 def index():
-    from models import Restaurant
     print('Request for index page received')
     restaurants = Restaurant.query.all()    
     return render_template('index.html', restaurants=restaurants)
@@ -54,11 +55,9 @@ def details(id):
     return details(id,'')
 
 def details(id, message):
-    from models import Restaurant, Review
     restaurant = Restaurant.query.where(Restaurant.id == id).first()
     reviews = Review.query.where(Review.restaurant==id)
-    account_url = get_account_url()
-    image_path = account_url + "/" + os.environ['STORAGE_CONTAINER_NAME']
+    image_path = get_account_url() + "/" +  STORAGE_CONTAINER_NAME
     return render_template('details.html', restaurant=restaurant, reviews=reviews, message=message, image_path=image_path)
 
 @app.route('/create', methods=['GET'])
@@ -69,7 +68,6 @@ def create_restaurant():
 @app.route('/add', methods=['POST'])
 @csrf.exempt
 def add_restaurant():
-    from models import Restaurant
     try:
         name = request.values.get('restaurant_name')
         street_address = request.values.get('street_address')
@@ -93,7 +91,6 @@ def add_restaurant():
 @app.route('/review/<int:id>', methods=['POST'])
 @csrf.exempt
 def add_review(id):
-    from models import Review
     try:
         user_name = request.values.get('user_name')
         rating = request.values.get('rating')
@@ -102,7 +99,6 @@ def add_review(id):
             raise RequestException()
     except (KeyError, RequestException):
         # Redisplay the review form.
-        from models import Restaurant
         restaurant = Restaurant.query.where(Restaurant.id == id).first()
         reviews = Review.query.where(Review.restaurant==id)
         return details(id, 'Review not added. Include at least a name and rating for review.')
@@ -121,20 +117,19 @@ def add_review(id):
                 return details(id, 'Image too big, try again.')
 
             # Get account_url based on environment
-            account_url = get_account_url()
-            print("account_url = " + account_url)
+            print("account_url = " + get_account_url())
 
             # Create client
             azure_credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True)
             blob_service_client = BlobServiceClient(
-                account_url=account_url,
+                account_url = get_account_url(),
                 credential=azure_credential)
 
             # Get file name to use in database
             image_name = str(uuid.uuid4()) + ".png"
             
             # Create blob client
-            blob_client = blob_service_client.get_blob_client(container=os.environ['STORAGE_CONTAINER_NAME'], blob=image_name)
+            blob_client = blob_service_client.get_blob_client(container=STORAGE_CONTAINER_NAME, blob=image_name)
             print("\nUploading to Azure Storage as blob:\n\t" + image_name)
 
             # Upload file
@@ -158,7 +153,6 @@ def add_review(id):
 @app.context_processor
 def utility_processor():
     def star_rating(id):
-        from models import Review
         reviews = Review.query.where(Review.restaurant==id)
 
         ratings = []
@@ -179,12 +173,16 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 def get_account_url():
-    # Create LOCAL_USE_AZURE_STORAGE environment variable to use Azure Storage locally. 
-    if 'WEBSITE_HOSTNAME' in os.environ or ("LOCAL_USE_AZURE_STORAGE" in os.environ):
-        print("Using Azure Storage.")
-        return "https://%s.blob.core.windows.net" % os.environ['STORAGE_ACCOUNT_NAME']
+    if not 'AZURE_STORAGEBLOB_RESOURCEENDPOINT' in os.environ:
+        # Create LOCAL_USE_AZURE_STORAGE environment variable to use Azure Storage locally. 
+        if 'WEBSITE_HOSTNAME' in os.environ or ("LOCAL_USE_AZURE_STORAGE" in os.environ):
+            print("Using Azure Storage.")
+            return "https://%s.blob.core.windows.net" % os.environ['STORAGE_ACCOUNT_NAME']
+        else:
+            return os.environ['STORAGE_ACCOUNT_NAME']
     else:
-        return os.environ['STORAGE_ACCOUNT_NAME']
+        return os.environ['AZURE_STORAGEBLOB_RESOURCEENDPOINT'].rstrip('/')
+
 
 if __name__ == '__main__':
    app.run()
