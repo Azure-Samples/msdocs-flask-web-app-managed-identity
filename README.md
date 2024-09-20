@@ -32,7 +32,7 @@ The [DefaultAzureCredential](https://docs.microsoft.com/python/api/azure-identit
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 
-azure_credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True)
+azure_credential = DefaultAzureCredential()
 blob_service_client = BlobServiceClient(
     account_url=account_url,
     credential=azure_credential)
@@ -45,3 +45,5 @@ azure_credential = DefaultAzureCredential()
 token = azure_credential.get_token("https://ossrdbms-aad.database.windows.net")
 conn = str(current_app.config.get('DATABASE_URI')).replace('PASSWORDORTOKEN', token.token)
 ```
+
+You can customize the credential chain that an instance of `DefaultAzureCredential` evaluates for use in your intended environments. To learn more, see [DefaultAzureCredential overview](https://learn.microsoft.com/azure/developer/python/sdk/authentication/credential-chains?tabs=dac#defaultazurecredential-overview).

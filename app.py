@@ -120,7 +120,7 @@ def add_review(id):
             print("account_url = " + get_account_url())
 
             # Create client
-            azure_credential = DefaultAzureCredential(exclude_shared_token_cache_credential=True)
+            azure_credential = DefaultAzureCredential()
             blob_service_client = BlobServiceClient(
                 account_url = get_account_url(),
                 credential=azure_credential)
